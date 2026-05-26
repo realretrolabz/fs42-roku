@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--
+    MainScene is the only screen in this Roku app.
+    It owns one Video node, the TV overlay, selectable control hotspots, and
+    a live channel display rendered over the overlay's built-in display.
+-->
+<component name="MainScene" extends="Scene">
+    <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+
+    <children>
+        <Video
+            id="streamVideo"
+            width="1280"
+            height="960"
+            enableUI="false"
+            translation="[244, 57]" />
+
+        <Poster
+            id="tvOverlay"
+            uri="pkg:/images/tv.png"
+            width="1920"
+            height="1080"
+            translation="[0, 0]" />
+
+        <Rectangle
+            id="channelDisplayBacker"
+            color="0x000000FF"
+            width="124"
+            height="88"
+            translation="[1594, 139]" />
+        <Label
+            id="channelDisplay"
+            text="--"
+            color="0xFF1A1AFF"
+            width="124"
+            height="88"
+            horizAlign="center"
+            vertAlign="center"
+            font="font:MediumBoldSystemFont"
+            translation="[1594, 139]" />
+
+        <Rectangle
+            id="powerFocus"
+            color="0xC8C8C833"
+            width="95"
+            height="71"
+            translation="[1609, 308]"
+            visible="false" />
+        <Rectangle
+            id="channelUpFocus"
+            color="0xC8C8C833"
+            width="103"
+            height="82"
+            translation="[1606, 442]"
+            visible="false" />
+        <Rectangle
+            id="channelDownFocus"
+            color="0xC8C8C833"
+            width="103"
+            height="82"
+            translation="[1606, 532]"
+            visible="false" />
+        <Rectangle
+            id="volumeUpFocus"
+            color="0xC8C8C833"
+            width="104"
+            height="85"
+            translation="[1606, 689]"
+            visible="false" />
+        <Rectangle
+            id="volumeDownFocus"
+            color="0xC8C8C833"
+            width="104"
+            height="85"
+            translation="[1606, 790]"
+            visible="false" />
+
+        <Group
+            id="bridgeUnavailableGroup"
+            visible="false">
+            <Rectangle
+                color="0x000000CC"
+                width="900"
+                height="180"
+                translation="[330, 430]" />
+            <Label
+                id="bridgeUnavailableTitle"
+                text="BRIDGE UNAVAILABLE"
+                color="0xFF1A1AFF"
+                width="900"
+                height="54"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[330, 448]" />
+            <Label
+                id="bridgeUnavailableText"
+                text="Press Options to set your FieldStation42 host."
+                color="0xFFFFFFFF"
+                width="900"
+                height="44"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:MediumSystemFont"
+                translation="[330, 520]" />
+        </Group>
+
+        <Group
+            id="settingsGroup"
+            visible="false">
+            <Rectangle
+                color="0x050505EE"
+                width="980"
+                height="390"
+                translation="[290, 330]" />
+            <Label
+                text="FIELDSTATION42 HOST"
+                color="0xFF8A22FF"
+                width="980"
+                height="56"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[290, 354]" />
+            <Label
+                id="settingsHelp"
+                text="Left/Right selects digits. Up/Down changes value. OK saves. Back cancels."
+                color="0xFFFFFFFF"
+                width="900"
+                height="48"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:MediumSystemFont"
+                translation="[330, 630]" />
+            <Rectangle
+                id="settingsOctetFocus"
+                color="0xFF8A2244"
+                width="112"
+                height="82"
+                translation="[471, 474]" />
+            <Label
+                id="settingsOctet0"
+                text="---"
+                color="0xFFFFFFFF"
+                width="112"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[471, 474]" />
+            <Label
+                text="."
+                color="0xFFFFFFFF"
+                width="28"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[583, 474]" />
+            <Label
+                id="settingsOctet1"
+                text="---"
+                color="0xFFFFFFFF"
+                width="112"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[611, 474]" />
+            <Label
+                text="."
+                color="0xFFFFFFFF"
+                width="28"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[723, 474]" />
+            <Label
+                id="settingsOctet2"
+                text="---"
+                color="0xFFFFFFFF"
+                width="112"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[751, 474]" />
+            <Label
+                text="."
+                color="0xFFFFFFFF"
+                width="28"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[863, 474]" />
+            <Label
+                id="settingsOctet3"
+                text="---"
+                color="0xFFFFFFFF"
+                width="112"
+                height="82"
+                horizAlign="center"
+                vertAlign="center"
+                font="font:LargeBoldSystemFont"
+                translation="[891, 474]" />
+        </Group>
+
+        <StatusPollTask id="statusPollTask" />
+        <Timer
+            id="channelChangeLockTimer"
+            duration="8"
+            repeat="false" />
+    </children>
+</component>

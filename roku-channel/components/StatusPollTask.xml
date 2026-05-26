@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<component name="StatusPollTask" extends="Task">
+    <script type="text/brightscript" uri="pkg:/components/StatusPollTask.brs" />
+
+    <interface>
+        <field id="statusUrl" type="string" />
+        <field id="pollSeconds" type="integer" value="1" />
+        <field id="streamGeneration" type="integer" value="-1" alwaysNotify="true" />
+        <field id="channelNumber" type="integer" value="-1" alwaysNotify="true" />
+        <field id="bridgeAvailable" type="boolean" value="false" alwaysNotify="true" />
+        <field id="statusMessage" type="string" alwaysNotify="true" />
+    </interface>
+</component>

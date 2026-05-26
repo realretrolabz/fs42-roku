@@ -1,0 +1,13 @@
+*
+
+!.gitignore
+!/fs42-stream-bridge/
+!/fs42-stream-bridge/**
+!/roku-channel/
+!/roku-channel/**
+
+fs42-stream-bridge/.agents/
+fs42-stream-bridge/.codex/
+fs42-stream-bridge/.git/
+fs42-stream-bridge/__pycache__/
+roku-channel/out/
