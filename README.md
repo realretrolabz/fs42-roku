@@ -86,7 +86,7 @@ For example, if FieldStation42 is already installed at one of these paths, leave
 /opt/FieldStation42
 ```
 
-Then clone this add-on wherever you keep projects:
+Then clone this add-on wherever you see fit:
 
 ```bash
 git clone https://github.com/realretrolabz/fs42-roku.git
