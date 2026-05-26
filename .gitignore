@@ -15,4 +15,5 @@ fs42-stream-bridge/.agents/
 fs42-stream-bridge/.codex/
 fs42-stream-bridge/.git/
 fs42-stream-bridge/__pycache__/
-roku-channel/out/
+roku-channel/out/*
+!roku-channel/out/roku-deploy.zip
