@@ -1,6 +1,11 @@
 *
 
 !.gitignore
+!AGENTS.md
+!README.md
+!install_hls_bridge.sh
+!/docs/
+!/docs/**
 !/fs42-stream-bridge/
 !/fs42-stream-bridge/**
 !/roku-channel/
