@@ -2,7 +2,7 @@
 
 ## Project: FieldStation42 Roku Client
 
-This repository/workspace is for building a Roku client for FieldStation42. The goal is **not** to replace FieldStation42. FieldStation42 remains the backend scheduler/player. The Roku app acts as a living-room client that plays a remote HLS stream and displays a nostalgic CRT/console-TV interface.
+This repository/workspace is for building a Roku client for FieldStation42. The goal is **not** to replace FieldStation42. FieldStation42 remains the backend scheduler/player. The Roku app acts as a living-room client that plays a remote HLS stream and displays a nostalgic TV/console interface.
 
 ## High-level architecture
 
@@ -25,14 +25,14 @@ Roku SceneGraph client
 There are two playback paths:
 
 ```text
-Local CRT path:
-FieldStation42 → mpv → physical CRT/local display
+Local display path:
+FieldStation42 → mpv → physical local display
 
 Remote Roku path:
 FieldStation42 status/API → stream bridge → FFmpeg → HLS → Roku/VLC/mpv client
 ```
 
-The local CRT path must continue working. Remote viewing is additive.
+The local display path must continue working. Remote viewing is additive.
 
 ## Expected workspace layout
 
@@ -200,7 +200,7 @@ The Roku app should:
 - Play `http://10.0.0.99:8088/stream.m3u8`.
 - Display a full-screen 16:9 UI.
 - Keep the video viewing area 4:3.
-- Display a nostalgic CRT/console-TV style bezel overlay.
+- Display a nostalgic TV/console-style bezel overlay.
 - Show current channel number on the bezel.
 - Poll FieldStation42 status or stream bridge status for current channel number.
 - Send channel up/down/direct channel commands to FieldStation42.
@@ -221,7 +221,7 @@ Inner video area:
 4:3
 ```
 
-The visual goal is a nostalgic CRT or woodgrain console-TV interface. The Roku app should act like a fake cable box/front-end, not like a modern streaming app.
+The visual goal is a nostalgic local-display or woodgrain console-TV interface. The Roku app should act like a fake cable box/front-end, not like a modern streaming app.
 
 Possible UI elements:
 
