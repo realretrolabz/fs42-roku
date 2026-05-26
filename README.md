@@ -76,30 +76,39 @@ Configure FieldStation42 there before setting up the Roku add-on.
 
 ## 2. Install This Add-on
 
-Clone this repo separately from FieldStation42. A common layout from the `fs42-roku` workspace root is:
+Clone this repo separately from FieldStation42. You do not need to move or reorganize an existing FieldStation42 install.
+
+For example, if FieldStation42 is already installed at one of these paths, leave it there:
 
 ```text
-fs42-roku/
-├── FieldStation42/
-├── fs42-stream-bridge/
-└── roku-channel/
+/home/pi/FieldStation42
+/home/pi/RetroLab/FieldStation42
+/opt/FieldStation42
 ```
 
-From the add-on repo root:
+Then clone this add-on wherever you keep projects:
 
 ```bash
+git clone https://github.com/realretrolabz/fs42-roku.git
 cd fs42-roku
 ```
 
-You can install the bridge manually or use the helper installer.
+When installing the bridge, pass your actual FieldStation42 path with `FS42_DIR`:
+
+```bash
+FS42_DIR=/path/to/your/FieldStation42 ./install_hls_bridge.sh
+```
+
+The installer has a convenience default of `../FieldStation42` for people who happen to keep both repos side by side, but that layout is not required.
 
 ## 3. Install the HLS Bridge
 
 Manual install:
 
 ```bash
-cp fs42-stream-bridge/hls_bridge.py ../FieldStation42/hls_bridge.py
-chmod +x ../FieldStation42/hls_bridge.py
+FS42_DIR=/path/to/your/FieldStation42
+cp fs42-stream-bridge/hls_bridge.py "$FS42_DIR/hls_bridge.py"
+chmod +x "$FS42_DIR/hls_bridge.py"
 ```
 
 Optional guided install:
@@ -228,17 +237,24 @@ The helper installer can create user-level systemd services:
 By default it assumes:
 
 - This add-on repo is the current repo root.
-- FieldStation42 has already been cloned separately next to it as `../FieldStation42`.
+- FieldStation42 is next to the add-on repo as `../FieldStation42`.
 - The script will copy `fs42-stream-bridge/hls_bridge.py` into that FieldStation42 checkout.
 
-You can override paths and defaults:
+That default is only a convenience. If you already have FieldStation42 installed somewhere else, use your real path:
 
 ```bash
-FS42_DIR=/opt/FieldStation42 \
-ADDON_DIR=/opt/fs42-roku \
+FS42_DIR=/home/pi/FieldStation42 \
 DISPLAY=:0.0 \
 CAPTURE_SIZE=720x480 \
 PUBLIC_HOST=<host-ip> \
+./install_hls_bridge.sh
+```
+
+You can also override the add-on repo path if you run the installer from another directory:
+
+```bash
+ADDON_DIR=/opt/fs42-roku \
+FS42_DIR=/home/pi/FieldStation42 \
 ./install_hls_bridge.sh
 ```
 
