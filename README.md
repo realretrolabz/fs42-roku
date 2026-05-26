@@ -119,6 +119,12 @@ Optional guided install:
 ./install_hls_bridge.sh
 ```
 
+By default, the installer first checks the current working directory for FieldStation42, then falls back to looking next to this repo as `../FieldStation42`. If neither path matches, it prompts for the real FieldStation42 directory. You can also provide it up front:
+
+```bash
+FS42_DIR=/path/to/your/FieldStation42 ./install_hls_bridge.sh
+```
+
 The installer prompts for:
 
 - Whether to copy/update `hls_bridge.py` into your FieldStation42 checkout.
@@ -151,16 +157,22 @@ http://<host-ip>:4242/player/status
 From the FieldStation42 directory:
 
 ```bash
-./hls_bridge.py --status-url http://127.0.0.1:4242/player/status --display :0.0 --capture-size 720x480
+./hls_bridge.py --status-url http://127.0.0.1:4242/player/status --display :0.0 --capture-size 720x480 --capture-framerate 24
 ```
 
 Useful options:
 
 ```bash
 ./hls_bridge.py --public-host <host-ip> --port 8088
+./hls_bridge.py --capture-size auto
+./hls_bridge.py --capture-size 720x480 --capture-framerate 24
 ./hls_bridge.py --audio-source pulse --pulse-source auto
 ./hls_bridge.py --audio-source silent
 ```
+
+For best Raspberry Pi performance, run the Pi display output at the same resolution you intend to capture. Native Raspberry Pi composite output is commonly `720x480`, so `--capture-size 720x480 --capture-framerate 24` is a good starting point.
+
+If you use an HDMI-to-composite converter, the Pi may still render at `1280x720` or `1920x1080` before the converter downscales the signal. In that case, either lower the Pi HDMI mode or expect higher FFmpeg CPU usage. `--capture-size auto` is the easiest setup option, but it captures the full display framebuffer and can cost more CPU on HD outputs.
 
 The bridge serves:
 
@@ -238,16 +250,17 @@ The helper installer can create user-level systemd services:
 
 By default it assumes:
 
-- This add-on repo is the current repo root.
-- FieldStation42 is next to the add-on repo as `../FieldStation42`.
+- The current working directory is your FieldStation42 install, if it contains `field_player.py`.
+- Otherwise, FieldStation42 may be next to the add-on repo as `../FieldStation42`.
 - The script will copy `fs42-stream-bridge/hls_bridge.py` into that FieldStation42 checkout.
 
-That default is only a convenience. If you already have FieldStation42 installed somewhere else, use your real path:
+That default is only a convenience. If the installer cannot find FieldStation42 there, it prompts for the real path. You can also pass the path yourself:
 
 ```bash
 FS42_DIR=/home/pi/FieldStation42 \
 DISPLAY=:0.0 \
 CAPTURE_SIZE=720x480 \
+CAPTURE_FRAMERATE=24 \
 PUBLIC_HOST=<host-ip> \
 ./install_hls_bridge.sh
 ```

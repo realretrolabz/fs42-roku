@@ -3,12 +3,17 @@
 set -euo pipefail
 
 ADDON_DIR="${ADDON_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-FS42_DIR="${FS42_DIR:-$(cd "$ADDON_DIR/.." && pwd)/FieldStation42}"
+DEFAULT_FS42_DIR="$(pwd)"
+if [ ! -f "$DEFAULT_FS42_DIR/field_player.py" ]; then
+    DEFAULT_FS42_DIR="$(cd "$ADDON_DIR/.." && pwd)/FieldStation42"
+fi
+FS42_DIR="${FS42_DIR:-$DEFAULT_FS42_DIR}"
 SYSTEMD_USER_DIR="${SYSTEMD_USER_DIR:-$HOME/.config/systemd/user}"
 
 BRIDGE_PORT="${BRIDGE_PORT:-8088}"
 FS42_STATUS_URL="${FS42_STATUS_URL:-http://127.0.0.1:4242/player/status}"
 HLS_DIR="${HLS_DIR:-/tmp/fs42-hls}"
+CAPTURE_FRAMERATE="${CAPTURE_FRAMERATE:-24}"
 
 ADDON_BRIDGE_SCRIPT="$ADDON_DIR/fs42-stream-bridge/hls_bridge.py"
 FS42_BRIDGE_SCRIPT="$FS42_DIR/hls_bridge.py"
@@ -46,6 +51,25 @@ require_file() {
         echo "Missing required file: $1" >&2
         exit 1
     fi
+}
+
+refresh_fs42_paths() {
+    FS42_BRIDGE_SCRIPT="$FS42_DIR/hls_bridge.py"
+    FS42_PYTHON="$FS42_DIR/env/bin/python3"
+    FS42_PLAYER="$FS42_DIR/field_player.py"
+}
+
+resolve_fs42_dir() {
+    while [ ! -f "$FS42_DIR/field_player.py" ]; do
+        echo ""
+        echo "Could not find FieldStation42 at:"
+        echo "  $FS42_DIR"
+        echo ""
+        echo "Enter the path to your existing FieldStation42 install."
+        echo "For example: /home/pi/FieldStation42"
+        FS42_DIR="$(prompt_value "FieldStation42 directory" "$FS42_DIR")"
+        refresh_fs42_paths
+    done
 }
 
 detect_display() {
@@ -104,13 +128,7 @@ detect_pulse_source() {
 }
 
 require_file "$ADDON_BRIDGE_SCRIPT"
-require_file "$FS42_PLAYER"
-
-if [ ! -x "$FS42_PYTHON" ]; then
-    echo "Missing FieldStation42 virtualenv Python: $FS42_PYTHON" >&2
-    echo "Run the upstream FieldStation42 installer first." >&2
-    exit 1
-fi
+resolve_fs42_dir
 
 DETECTED_DISPLAY="$(detect_display)"
 DETECTED_CAPTURE_SIZE="$(detect_capture_size "$DETECTED_DISPLAY")"
@@ -140,13 +158,18 @@ echo ""
 echo "Detected defaults:"
 echo "  DISPLAY=$DISPLAY_VALUE"
 echo "  CAPTURE_SIZE=$CAPTURE_SIZE"
+echo "  CAPTURE_FRAMERATE=$CAPTURE_FRAMERATE"
 echo "  PUBLIC_HOST=$PUBLIC_HOST"
 echo "  AUDIO_SOURCE=$AUDIO_SOURCE"
 echo "  PULSE_SOURCE=$PULSE_SOURCE"
 echo ""
 
 DISPLAY_VALUE="$(prompt_value "X11 display to capture" "$DISPLAY_VALUE")"
+echo "Capture size is the display area FFmpeg grabs before encoding."
+echo "Use 720x480 for native Raspberry Pi composite output. If using an HDMI-to-composite converter,"
+echo "the Pi may still render at 720p/1080p unless you lower the Pi display mode."
 CAPTURE_SIZE="$(prompt_value "Capture size" "$CAPTURE_SIZE")"
+CAPTURE_FRAMERATE="$(prompt_value "Capture framerate" "$CAPTURE_FRAMERATE")"
 PUBLIC_HOST="$(prompt_value "Host/IP Roku should use for the bridge" "$PUBLIC_HOST")"
 AUDIO_SOURCE="$(prompt_value "Bridge audio source mode: auto, pulse, or silent" "$AUDIO_SOURCE")"
 if [ "$AUDIO_SOURCE" = "pulse" ]; then
@@ -195,6 +218,13 @@ mkdir -p "$SYSTEMD_USER_DIR"
 INSTALLED_SERVICES=()
 
 if [ "$INSTALL_PLAYER_SERVICE" = true ]; then
+    require_file "$FS42_PLAYER"
+    if [ ! -x "$FS42_PYTHON" ]; then
+        echo "Missing FieldStation42 virtualenv Python: $FS42_PYTHON" >&2
+        echo "Run the upstream FieldStation42 installer first or skip fs42-player.service." >&2
+        exit 1
+    fi
+
     cat > "$SYSTEMD_USER_DIR/fs42-player.service" <<SERVICE
 [Unit]
 Description=FieldStation42 Player
@@ -235,7 +265,7 @@ Wants=fs42-player.service graphical-session.target
 Type=simple
 WorkingDirectory=$FS42_DIR
 Environment=DISPLAY=$DISPLAY_VALUE
-ExecStart=/usr/bin/env python3 $FS42_BRIDGE_SCRIPT --status-url $FS42_STATUS_URL --hls-dir $HLS_DIR --public-host $PUBLIC_HOST --port $BRIDGE_PORT --display $DISPLAY_VALUE --capture-size $CAPTURE_SIZE --audio-source $AUDIO_SOURCE --pulse-source $PULSE_SOURCE
+ExecStart=/usr/bin/env python3 $FS42_BRIDGE_SCRIPT --status-url $FS42_STATUS_URL --hls-dir $HLS_DIR --public-host $PUBLIC_HOST --port $BRIDGE_PORT --display $DISPLAY_VALUE --capture-size $CAPTURE_SIZE --capture-framerate $CAPTURE_FRAMERATE --audio-source $AUDIO_SOURCE --pulse-source $PULSE_SOURCE
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
