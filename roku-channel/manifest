@@ -2,7 +2,7 @@ title=FieldStation42
 subtitle=Roku Client
 major_version=0
 minor_version=1
-build_version=00002
+build_version=00003
 
 # Use a 1920x1080 SceneGraph coordinate system.
 ui_resolutions=fhd

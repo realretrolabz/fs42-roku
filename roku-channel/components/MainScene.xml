@@ -61,20 +61,6 @@
             height="82"
             translation="[1606, 532]"
             visible="false" />
-        <Rectangle
-            id="volumeUpFocus"
-            color="0xC8C8C833"
-            width="104"
-            height="85"
-            translation="[1606, 689]"
-            visible="false" />
-        <Rectangle
-            id="volumeDownFocus"
-            color="0xC8C8C833"
-            width="104"
-            height="85"
-            translation="[1606, 790]"
-            visible="false" />
 
         <Group
             id="bridgeUnavailableGroup"

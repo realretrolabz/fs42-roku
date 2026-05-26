@@ -179,13 +179,15 @@ echo "If the Pi renders at 720p/1080p before an external converter downscales, l
 if yes_no "Enable 480p optimized capture mode?" "N"; then
     CAPTURE_SIZE="640x480"
     CAPTURE_OFFSET="40,0"
-    CAPTURE_FRAMERATE="24"
     FULL_FRAME_CAPTURE_SIZE="720x480"
     FULL_FRAME_CAPTURE_OFFSET="0,0"
     FULL_FRAME_CONTENT_TYPES="guide,web"
+    echo "Capture framerate: 24 = lower CPU, good TV cadence; 30 = smoother motion, higher CPU."
+    CAPTURE_FRAMERATE="$(prompt_value "Capture framerate" "$CAPTURE_FRAMERATE")"
     echo "Using 480p optimized mode:"
     echo "  video/default: $CAPTURE_SIZE at offset $CAPTURE_OFFSET"
     echo "  guide/web:     $FULL_FRAME_CAPTURE_SIZE at offset $FULL_FRAME_CAPTURE_OFFSET"
+    echo "  framerate:     $CAPTURE_FRAMERATE fps"
 else
     CAPTURE_SIZE="$(prompt_value "Capture size" "$CAPTURE_SIZE")"
     CAPTURE_OFFSET="$(prompt_value "Capture offset" "$CAPTURE_OFFSET")"

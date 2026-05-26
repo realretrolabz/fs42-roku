@@ -48,18 +48,6 @@ sub init()
             path: "/player/channels/down"
             method: "GET"
         }
-        {
-            name: "volumeUp"
-            focusNode: m.top.FindNode("volumeUpFocus")
-            path: "/player/volume/up"
-            method: "GET"
-        }
-        {
-            name: "volumeDown"
-            focusNode: m.top.FindNode("volumeDownFocus")
-            path: "/player/volume/down"
-            method: "GET"
-        }
     ]
 
     initializeNetworkConfig()
