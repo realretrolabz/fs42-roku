@@ -250,6 +250,7 @@ Roku only allows one sideloaded app at a time. Uploading another sideloaded app 
 On first launch, the Roku app opens the FieldStation42 host settings screen.
 
 - Press `Options` to reopen host settings later if you need to change or reset the saved address.
+- Select the on-screen `Power` button to toggle the scanline overlay.
 - Use Left/Right to select IP octets.
 - Use Up/Down to change values.
 - Press OK to save.
