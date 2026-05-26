@@ -170,9 +170,37 @@ Useful options:
 ./hls_bridge.py --audio-source silent
 ```
 
-For best Raspberry Pi performance, run the Pi display output at the same resolution you intend to capture. Native Raspberry Pi composite output is commonly `720x480`, so `--capture-size 720x480 --capture-framerate 24` is a good starting point.
+For best Raspberry Pi performance, run the Pi display output at the same resolution you intend to capture. A `720x480` Pi framebuffer is a good target for native composite, HDMI 480p, or HDMI-to-composite setups where the Pi itself is forced to 480p.
 
 If you use an HDMI-to-composite converter, the Pi may still render at `1280x720` or `1920x1080` before the converter downscales the signal. In that case, either lower the Pi HDMI mode or expect higher FFmpeg CPU usage. `--capture-size auto` is the easiest setup option, but it captures the full display framebuffer and can cost more CPU on HD outputs.
+
+### 480p Optimized Capture Mode
+
+The installer can enable `480p optimized capture mode` for Raspberry Pi setups where the actual Pi framebuffer is `720x480`.
+
+This mode uses:
+
+```text
+normal video/default: 640x480 at offset 40,0
+guide/web channels:   720x480 at offset 0,0
+framerate:            24 fps
+```
+
+The bridge watches FieldStation42 status and switches capture profiles automatically. Normal centered 4:3 video uses the lower-CPU `640x480` crop. FieldStation42 `guide` and `web` content uses the full `720x480` frame so generated pages and guide screens are not cropped.
+
+Equivalent manual command:
+
+```bash
+./hls_bridge.py \
+  --capture-size 640x480 \
+  --capture-offset 40,0 \
+  --capture-framerate 24 \
+  --full-frame-capture-size 720x480 \
+  --full-frame-capture-offset 0,0 \
+  --full-frame-content-types guide,web
+```
+
+Use regular `--capture-size 720x480 --capture-offset 0,0` if your content uses the full frame all the time or if your display is not actually running at `720x480`.
 
 The bridge serves:
 
@@ -248,6 +276,8 @@ The helper installer can create user-level systemd services:
 ./install_hls_bridge.sh
 ```
 
+You can rerun the installer later to update `hls_bridge.py`, change capture settings, enable 480p optimized capture mode, install services, or start services after an earlier manual setup. If it rewrites a selected service and you choose to enable/start services, it restarts that service so the new settings take effect.
+
 By default it assumes:
 
 - The current working directory is your FieldStation42 install, if it contains `field_player.py`.
@@ -286,6 +316,7 @@ Useful commands:
 systemctl --user daemon-reload
 systemctl --user enable --now fs42-player.service
 systemctl --user enable --now fs42-hls-bridge.service
+systemctl --user restart fs42-hls-bridge.service
 systemctl --user status fs42-player.service
 systemctl --user status fs42-hls-bridge.service
 journalctl --user -u fs42-hls-bridge.service -f

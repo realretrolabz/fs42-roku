@@ -37,6 +37,10 @@ class BridgeState:
         self.message = "Bridge is starting."
         self.channel_number = None
         self.file_path = None
+        self.content_type = None
+        self.capture_profile = None
+        self.capture_size = None
+        self.capture_offset = None
         self.last_fs42_status = None
         self.updated_at = None
 
@@ -61,6 +65,10 @@ class BridgeState:
                 "message": self.message,
                 "channel_number": self.channel_number,
                 "file_path": self.file_path,
+                "content_type": self.content_type,
+                "capture_profile": self.capture_profile,
+                "capture_size": self.capture_size,
+                "capture_offset": self.capture_offset,
                 "last_fs42_status": self.last_fs42_status,
                 "updated_at": self.updated_at,
             }
@@ -277,9 +285,10 @@ def detect_display_size(display):
     return None
 
 
-def resolve_capture_size(args):
-    if args.capture_size.lower() != "auto":
-        return args.capture_size
+def resolve_capture_size(args, capture_size=None):
+    requested_size = capture_size or args.capture_size
+    if requested_size.lower() != "auto":
+        return requested_size
 
     detected_size = detect_display_size(args.display)
     if detected_size:
@@ -287,6 +296,36 @@ def resolve_capture_size(args):
 
     print(f"Falling back to capture size {CAPTURE_SIZE_FALLBACK}.")
     return CAPTURE_SIZE_FALLBACK
+
+
+def parse_content_type_set(value):
+    return {
+        item.strip().lower()
+        for item in value.split(",")
+        if item.strip()
+    }
+
+
+def screen_capture_profile(args, status=None):
+    content_type = ""
+    if status:
+        content_type = str(status.get("content_type") or "").lower()
+
+    full_frame_types = parse_content_type_set(args.full_frame_content_types)
+    if args.full_frame_capture_size and content_type in full_frame_types:
+        return {
+            "name": "full-frame",
+            "size": args.full_frame_capture_size,
+            "offset": args.full_frame_capture_offset,
+            "content_type": content_type,
+        }
+
+    return {
+        "name": "default",
+        "size": args.capture_size,
+        "offset": args.capture_offset,
+        "content_type": content_type or None,
+    }
 
 
 def detect_pulse_monitor_source():
@@ -344,7 +383,7 @@ def resolve_audio_input(args):
     return "silent", None
 
 
-def build_screen_command(args, playlist, capture_size, audio_mode, audio_source):
+def build_screen_command(args, playlist, capture_size, capture_offset, audio_mode, audio_source):
     cmd = [
         "ffmpeg",
         "-hide_banner",
@@ -361,7 +400,7 @@ def build_screen_command(args, playlist, capture_size, audio_mode, audio_source)
         "-video_size",
         capture_size,
         "-i",
-        build_screen_input(args.display, args.capture_offset),
+        build_screen_input(args.display, capture_offset),
     ]
 
     if audio_mode == "pulse":
@@ -625,15 +664,18 @@ def start_filler(args, state, message, publish_generation=True, clear_existing=T
     return proc
 
 
-def start_screen_capture(args, state, publish_generation=True, clear_existing=True):
+def start_screen_capture(args, state, status=None, publish_generation=True, clear_existing=True):
     playlist = os.path.join(args.hls_dir, "stream.m3u8")
-    capture_size = resolve_capture_size(args)
+    profile = screen_capture_profile(args, status)
+    capture_size = resolve_capture_size(args, profile["size"])
+    capture_offset = profile["offset"]
     audio_mode, audio_source = resolve_audio_input(args)
-    cmd = build_screen_command(args, playlist, capture_size, audio_mode, audio_source)
+    cmd = build_screen_command(args, playlist, capture_size, capture_offset, audio_mode, audio_source)
 
     print("")
     print("Starting FFmpeg screen-capture HLS:")
-    print(f"  display:   {build_screen_input(args.display, args.capture_offset)}")
+    print(f"  profile:   {profile['name']}")
+    print(f"  display:   {build_screen_input(args.display, capture_offset)}")
     print(f"  size:      {capture_size} @ {args.capture_framerate} fps")
     if audio_source:
         print(f"  audio:     {audio_mode} ({audio_source})")
@@ -651,6 +693,10 @@ def start_screen_capture(args, state, publish_generation=True, clear_existing=Tr
         "mode": "screen",
         "message": "Streaming captured FieldStation42 screen.",
         "file_path": None,
+        "content_type": profile["content_type"],
+        "capture_profile": profile["name"],
+        "capture_size": capture_size,
+        "capture_offset": capture_offset,
     }
     if publish_generation:
         state.bump_generation(**state_values)
@@ -796,25 +842,39 @@ def run_bridge(args, state):
 def run_screen_bridge(args, state):
     ffmpeg_proc = None
     last_channel = None
+    last_profile_key = None
 
     os.makedirs(args.hls_dir, exist_ok=True)
 
     try:
-        ffmpeg_proc = start_screen_capture(args, state)
+        initial_status = fetch_status(args.status_url, args.status_file)
+        initial_profile = screen_capture_profile(args, initial_status)
+        last_profile_key = (initial_profile["name"], initial_profile["size"], initial_profile["offset"])
+        ffmpeg_proc = start_screen_capture(args, state, initial_status)
 
         while True:
             status = fetch_status(args.status_url, args.status_file)
 
             if status:
                 channel_number = status.get("channel_number")
-                if last_channel is not None and channel_number != last_channel:
-                    print(f"Detected channel change from {last_channel} to {channel_number}; restarting screen HLS.")
+                profile = screen_capture_profile(args, status)
+                profile_key = (profile["name"], profile["size"], profile["offset"])
+                channel_changed = last_channel is not None and channel_number != last_channel
+                profile_changed = last_profile_key is not None and profile_key != last_profile_key
+
+                if channel_changed or profile_changed:
+                    if channel_changed:
+                        print(f"Detected channel change from {last_channel} to {channel_number}; restarting screen HLS.")
+                    if profile_changed:
+                        print(f"Switching screen capture profile to {profile['name']} ({profile['size']}+{profile['offset']}).")
                     stop_ffmpeg(ffmpeg_proc)
-                    ffmpeg_proc = start_screen_capture(args, state)
+                    ffmpeg_proc = start_screen_capture(args, state, status)
+                    last_profile_key = profile_key
 
                 state.update(
                     last_fs42_status=status.get("status"),
                     channel_number=channel_number,
+                    content_type=status.get("content_type"),
                 )
                 last_channel = channel_number
             else:
@@ -827,7 +887,7 @@ def run_screen_bridge(args, state):
             if ffmpeg_proc and ffmpeg_proc.poll() is not None:
                 exit_code = ffmpeg_proc.poll()
                 print(f"FFmpeg screen capture exited with code {exit_code}; restarting.")
-                ffmpeg_proc = start_screen_capture(args, state)
+                ffmpeg_proc = start_screen_capture(args, state, status)
 
             time.sleep(args.poll_seconds)
 
@@ -870,6 +930,21 @@ def parse_args():
     )
     parser.add_argument("--capture-offset", default="0,0")
     parser.add_argument("--capture-framerate", type=int, default=CAPTURE_FRAMERATE)
+    parser.add_argument(
+        "--full-frame-capture-size",
+        default="",
+        help="Optional alternate capture size for full-frame content types such as guide and web.",
+    )
+    parser.add_argument(
+        "--full-frame-capture-offset",
+        default="0,0",
+        help="Capture offset used with --full-frame-capture-size.",
+    )
+    parser.add_argument(
+        "--full-frame-content-types",
+        default="guide,web",
+        help="Comma-separated FS42 content_type values that should use the full-frame capture profile.",
+    )
     parser.add_argument(
         "--audio-source",
         choices=("auto", "silent", "pulse"),

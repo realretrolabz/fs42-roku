@@ -33,6 +33,8 @@ Common examples:
 
 Raspberry Pi note:
 
-- Native composite output is commonly `720x480`; capture that directly for lower CPU.
+- A `720x480` Pi framebuffer is a good target for native composite, HDMI 480p, or HDMI-to-composite setups where the Pi itself is forced to 480p.
 - HDMI-to-composite converters may still make the Pi render at HD resolutions before downscaling.
 - `--capture-size auto` is convenient, but it can be expensive if the Pi framebuffer is `1280x720` or `1920x1080`.
+- On a `720x480` framebuffer, `--capture-size 640x480 --capture-offset 40,0` can reduce CPU for centered video content.
+- If guide/web channels are cropped by that optimization, add `--full-frame-capture-size 720x480 --full-frame-capture-offset 0,0`; the bridge uses FieldStation42 `content_type` values `guide` and `web` to switch profiles automatically.
