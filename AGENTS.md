@@ -63,26 +63,29 @@ Prefer controlling/observing FieldStation42 through its local HTTP/status API.
 
 ## Network assumptions
 
-Current FieldStation42 machine IP:
+Do not assume a fixed LAN IP. Treat the FieldStation42 host address as user/environment-specific.
+
+Use placeholders in docs and examples:
 
 ```text
-10.0.0.99
+<host-ip>
 ```
 
-Current HLS stream URL:
+Common URLs:
 
 ```text
-http://10.0.0.99:8088/stream.m3u8
+http://<host-ip>:8088/stream.m3u8
+http://<host-ip>:8088/status
 ```
 
 FieldStation42 player/status API may be reachable at either:
 
 ```text
 http://127.0.0.1:4242/player/status
-http://10.0.0.99:4242/player/status
+http://<host-ip>:4242/player/status
 ```
 
-Use `127.0.0.1` from the same machine when possible. Use the LAN IP when testing from another device.
+Use `127.0.0.1` from the same machine when possible. Use the host's LAN IP when testing from Roku or another device.
 
 ## FieldStation42 control API
 
@@ -91,9 +94,9 @@ FieldStation42 already exposes useful channel endpoints. The Roku app can call t
 Examples:
 
 ```text
-http://10.0.0.99:4242/player/channels/up
-http://10.0.0.99:4242/player/channels/down
-http://10.0.0.99:4242/player/channels/66
+http://<host-ip>:4242/player/channels/up
+http://<host-ip>:4242/player/channels/down
+http://<host-ip>:4242/player/channels/66
 ```
 
 Avoid creating a separate control bridge until there is a clear need. A control bridge may be useful later for authentication, API cleanup, retry logic, combined status, or hiding FieldStation42 internals from the Roku app.
@@ -177,27 +180,27 @@ watch -n 1 'ls -lh /tmp/fs42-hls'
 Test stream with mpv:
 
 ```bash
-mpv --hwdec=no http://10.0.0.99:8088/stream.m3u8
+mpv --hwdec=no http://<host-ip>:8088/stream.m3u8
 ```
 
 Test stream with VLC software decode:
 
 ```bash
-vlc --avcodec-hw=none http://10.0.0.99:8088/stream.m3u8
+vlc --avcodec-hw=none http://<host-ip>:8088/stream.m3u8
 ```
 
 Check FieldStation42 status:
 
 ```bash
 curl http://127.0.0.1:4242/player/status
-curl http://10.0.0.99:4242/player/status
+curl http://<host-ip>:4242/player/status
 ```
 
 ## Roku app responsibilities
 
 The Roku app should:
 
-- Play `http://10.0.0.99:8088/stream.m3u8`.
+- Play `http://<host-ip>:8088/stream.m3u8`.
 - Display a full-screen 16:9 UI.
 - Keep the video viewing area 4:3.
 - Display a nostalgic TV/console-style bezel overlay.
@@ -255,7 +258,7 @@ SceneGraph is Roku's XML-like UI framework. It is not HTML and not a browser.
 Create the smallest valid Roku app that plays:
 
 ```text
-http://10.0.0.99:8088/stream.m3u8
+http://<host-ip>:8088/stream.m3u8
 ```
 
 No bezel yet. No advanced UI. Confirm Roku playback first.
@@ -325,7 +328,7 @@ When working in this project:
 `mpv` has been more reliable than VLC for testing the HLS stream:
 
 ```bash
-mpv --hwdec=no http://10.0.0.99:8088/stream.m3u8
+mpv --hwdec=no http://<host-ip>:8088/stream.m3u8
 ```
 
 VLC on Linux may show VAAPI/VDPAU/video-output errors. VLC errors are not always proof that the HLS stream itself is broken.

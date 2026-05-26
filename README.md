@@ -1,5 +1,7 @@
 # FieldStation42 Roku Add-on
 
+![FieldStation42 Roku retro TV interface](docs/roku-interface.jpg)
+
 This repository is a Roku companion add-on for [FieldStation42](https://fieldstation42.com), the open-source broadcast and cable TV simulator by Shane Mason.
 
 It does not include, replace, or redistribute FieldStation42. Install FieldStation42 from the original project first, then install this add-on alongside that existing host setup.
@@ -207,7 +209,7 @@ Roku only allows one sideloaded app at a time. Uploading another sideloaded app 
 
 On first launch, the Roku app opens the FieldStation42 host settings screen.
 
-- Press `Options` to reopen settings later.
+- Press `Options` to reopen host settings later if you need to change or reset the saved address.
 - Use Left/Right to select IP octets.
 - Use Up/Down to change values.
 - Press OK to save.
