@@ -128,12 +128,20 @@ FS42_DIR=/path/to/your/FieldStation42 ./install_hls_bridge.sh
 The installer prompts for:
 
 - Whether to copy/update `hls_bridge.py` into your FieldStation42 checkout.
+- Bridge capture settings, including optional 480p optimized capture mode.
 - Whether to install `fs42-player.service`.
 - Whether to install `fs42-hls-bridge.service`.
 - Whether to enable/start selected services immediately.
 - Whether to enable user lingering.
 
-It tries to auto-detect the X11 display, capture size, host IP, and PulseAudio monitor source.
+It tries to auto-detect the X11 display, capture size, host IP, and PulseAudio monitor source. It also saves the selected bridge settings to `hls_bridge.env` in your FieldStation42 directory and writes a manual launcher named `run_hls_bridge.sh`.
+
+The installer supports two bridge launch styles:
+
+- Service launch: answer yes to installing `fs42-hls-bridge.service`.
+- Manual launch: skip the bridge service and run `./run_hls_bridge.sh` from your FieldStation42 directory.
+
+Both launch styles use the same saved `hls_bridge.env` settings. Manual launch is useful for testing by hand, avoiding the service install path, or running on a system where the generated systemd user service is not appropriate.
 
 ## 4. Run FieldStation42 Playback
 
@@ -187,6 +195,8 @@ framerate:            24 fps
 ```
 
 The bridge watches FieldStation42 status and switches capture profiles automatically. Normal centered 4:3 video uses the lower-CPU `640x480` crop. FieldStation42 `guide` and `web` content uses the full `720x480` frame so generated pages and guide screens are not cropped.
+
+When configured through `install_hls_bridge.sh`, these settings are saved in `hls_bridge.env`. Rerunning the installer uses existing settings from `hls_bridge.env` or from an installed `fs42-hls-bridge.service` as the next set of defaults, so 480p optimized mode should remain selected unless you turn it off.
 
 Equivalent manual command:
 
@@ -269,15 +279,22 @@ http://<host-ip>:4242/player/channels/down
 
 If the bridge cannot be reached, the app shows a bridge-unavailable screen and prompts you to open settings.
 
-## Optional systemd Services
+## Optional Service Install
 
-The helper installer can create user-level systemd services:
+The helper installer can create user-level systemd services if you want the player and bridge to run as services:
 
 ```bash
 ./install_hls_bridge.sh
 ```
 
-You can rerun the installer later to update `hls_bridge.py`, change capture settings, enable 480p optimized capture mode, install services, or start services after an earlier manual setup. If it rewrites a selected service and you choose to enable/start services, it restarts that service so the new settings take effect.
+You can rerun the installer later to update `hls_bridge.py`, change capture settings, enable 480p optimized capture mode, install services, or start services after an earlier manual setup. The installer saves bridge settings to `hls_bridge.env` and writes `run_hls_bridge.sh` even if you skip the bridge service.
+
+If it rewrites a selected service and you choose to enable/start services, it restarts that service so the new settings take effect. If you skip the service install path, use the generated manual launcher instead:
+
+```bash
+cd /path/to/your/FieldStation42
+./run_hls_bridge.sh
+```
 
 By default it assumes:
 
@@ -307,9 +324,13 @@ FS42_DIR=/home/pi/FieldStation42 \
 Depending on your answers, the installer creates:
 
 ```text
+FieldStation42/hls_bridge.env
+FieldStation42/run_hls_bridge.sh
 ~/.config/systemd/user/fs42-player.service
 ~/.config/systemd/user/fs42-hls-bridge.service
 ```
+
+The two `FieldStation42/` files are written for both launch styles. The `~/.config/systemd/user/` files are only written when you answer yes to installing those services.
 
 Useful commands:
 
