@@ -13,6 +13,16 @@ Original FieldStation42 project:
 
 Credit and thanks go to Shane Mason and the FieldStation42 project. This repo is meant as an add-on for users who already run FieldStation42 with their own host and media.
 
+## Disclaimer
+
+This is an unofficial FieldStation42 utility built for my own setup and shared as-is in case it helps others.
+
+It is not affiliated with, endorsed by, or supported by the official FieldStation42 project.
+
+This project was developed with AI-assisted coding tools and manually reviewed/tested against my own use case. Specific bug reports, reproducible issues, and pull requests are welcome.
+
+General debates about AI-assisted development are outside the scope of this repo.
+
 ## What This Adds
 
 - A Roku SceneGraph channel with a retro TV interface.
